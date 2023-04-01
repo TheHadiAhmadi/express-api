@@ -1,97 +1,74 @@
-import express from 'express'
+const generateTs = require("./generate_ts");
+const MiniApi = require("./lib");
+const { ObjectMap } = require("./utils");
 
 const config = {
-    models: {
+    services: {
         users: {
-            id: 'number',
-            name: 'string',
-            email: 'string|email'
+            fields: {
+                name: { type: 'string', label: 'Name', required: true, pattern: '[a-zA-Z_]', filterable: true, sortable: true },
+                email: { type: 'string', label: 'Email', required: true, filterable: true, sortable: true }, // email,
+                age: { type: 'number', label: 'Age', min: 18, filterable: true, sortable: true },
+                todos: { type: 'array', label: 'Todos', items: 'todos', filterable: true, sortable: true }
+            },
+            // id: true,
+            // createdAt: true,
+            // updatedAt: true
         },
         todos: {
-            id: 'number',
-            title: 'string|required',
-            description: 'string',
-            status: 'enum(active,inactive,done)'
+            fields: {
+                title: { type: 'string', filterable: true, sortable: true },
+                status: { type: 'enum', items: ["done", 'progress', 'cancelled', 'new'], filterable: true, sortable: true },
+            }
         }
+    },
+    port: 3000,
+    db: 'https://minibase-db-2.vercel.app'
+}
+
+
+const app = MiniApi(config)
+
+const UserService = {
+    async test(ctx) {
+        // 
+    },
+    async user2(ctx) {
+        // 
     }
 }
 
-const allData = {
-    users: [
-        {
-            id: 1,
-            name: 'Hadi',
-            email: 'thehadiahmadi@gmail.com'
-        },
-        {
-            id: 2,
-            name: 'Hadi2',
-            email: 'thehadiahmadi2@gmail.com'
-        }
-    ],
-    todos: [
-        {
-            id: 1,
-            title: 'Title 1',
-            description: 'lorem ipsum lorem ipsum lorem ipsum lorem ipsumlorem ipsum',
-            status: 'inactive'
-        },
-        {
-            id: 2,
-            title: 'Title 2',
-            description: 'lorem ipsum lorem ipsum lorem ipsum lorem ipsumlorem ipsum',
-        },
-        {
-            id: 3,
-            title: 'Title 1',
-            status: 'done'
-        },
-    ]
+const TodoService = {
+    async todoss(ctx) {
+        // 
+    },
+    async todo2(ctx) {
+        // 
+    }
 }
 
 
+const SystemService = {
+    ts: async (ctx) => {
+        const fields = ObjectMap(ctx.models, model => model.fields())
+
+        return generateTs(fields)
+    },
+    fields: async (ctx) => {
+        return ObjectMap(ctx.models, model => model.fields())
+    }
+}
+
+app.useService('system', SystemService)
 
 
-const app = express();
-app.use(express.json())
+app.useService('users', UserService);
+app.useService('todos', TodoService);
 
+app.express().then(app => {
 
-
-
-// async function handler({body, query, name }) {
-    console.log('function', 'function') 
-
-
-    
-    // const handler = services[name](name);
-
-    // const model = handler.model
-    // const controller = handler.controller
-
-    // const output = await controller.create({body, query})
-
-    // return output
-// }
-// 
-
-
-// app.use('/:name', async (req, res) => {
-
-//     const name = req.params.name
-//     const body = req.body
-//     const query = req.query
-//     const output = await handler({body, query, name})
-
-//     res.send(output)
-// })
-
-app.use('/', (req, res) => {
-    res.send("Hi")
+    app.listen(3000, () => {
+        console.log('App Started on port: ' + 3000)
+    })
 })
-
-
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log('listening on port ' + port)
-})
+module.exports = app
